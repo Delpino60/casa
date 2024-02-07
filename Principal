@@ -1,0 +1,1238 @@
+/*
+  Notas
+  As portas Virtuais 37, 38, 39 Respectivamente são responsaveis pelo comando de Abrir , Fechar e receber os dados da Cortina.
+
+  Portas usadas no enthernet shild 4, 10, 50, 51, 52 e 53 do Mega.
+*/
+
+#define BLYNK_TEMPLATE_ID           "TMPLAD4xwLwb"
+#define BLYNK_TEMPLATE_NAME         "Casa"
+#define BLYNK_AUTH_TOKEN            "OIMGUX3BzX8NeV26gb7yEOXXOIQXXLdV"
+#define BLYNK_PRINT Serial
+#define BLYNK_FIRMWARE_VERSION      "5.4.2"
+
+
+
+
+// INCLUSÃO DE BIBLIOTECAS
+#include <SPI.h>
+#include <Ethernet.h>
+#include <BlynkSimpleEthernet.h>
+#include <A2a.h>
+#include <EEPROM.h>
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
+#include <DS3231.h>
+#include <dht.h>
+#include "PushButton.h"
+
+#define    dht_pin    3
+dht   my_dht;
+int    temperatura = 0x00,   //armazena a temperatura em inteiro
+       umidade     = 0x00;   //armazena a umidade em inteiro
+
+
+
+//Bluetooh Interface
+char InfoBlue = 0;
+
+
+
+
+// Init the DS3231 using the hardware interface
+DS3231  rtc(SDA, SCL);
+
+// Init a Time-data structure
+Time  t;
+
+// Set the LCD address to 0x27 for a 16 chars and 2 line display
+LiquidCrystal_I2C lcd(0x27, 20, 4);
+
+//Define EEPROM
+
+#define espacoEEPROM 1000
+
+
+//Definiçoes Pinos de entradas
+#define PinEntrada01 5
+#define PinEntrada02 6
+#define PinEntrada03 7
+#define PinEntrada04 8
+
+#define PinEntrada05 22
+#define PinEntrada06 24
+#define PinEntrada07 26
+#define PinEntrada08 28
+#define PinEntrada09 30
+#define PinEntrada10 32
+#define PinEntrada11 34
+#define PinEntrada12 36
+#define PinEntrada13 38
+#define PinEntrada14 40
+#define PinEntrada15 42
+#define PinEntrada16 44
+#define PinEntrada17 46
+#define PinEntrada18 48
+
+#define PinEntrada19 23
+#define PinEntrada20 25
+
+#define PinEntrada21 27
+#define PinEntrada22 29
+#define PinEntrada23 31
+#define PinEntrada24 33
+#define PinEntrada25 35
+#define PinEntrada26 37
+#define PinEntrada27 39
+#define PinEntrada28 41
+#define PinEntrada29 43
+#define PinEntrada30 45
+#define PinEntrada31 47
+#define PinEntrada32 49
+
+#define PinEntrada33    A0
+#define PinEntrada34    A1
+#define PinEntrada35    A2
+#define PinEntrada36    A3
+
+#define PinLimpaEEprom  A5 // fio azulf
+#define PinBootBlynk    A4 //fio verde
+
+#define PinLed erro
+
+#define SemRede 2
+
+
+
+int BootBlynk;
+
+
+//Definiçoes Reles
+
+#define Rele01 22
+#define Rele02 24
+#define Rele03 26
+#define Rele04 28
+#define Rele05 30
+#define Rele06 32
+#define Rele07 34
+#define Rele08 36
+#define Rele09 38
+#define Rele10 40
+#define Rele11 42
+#define Rele12 44
+#define Rele13 46
+#define Rele14 48
+#define Rele15 50
+#define Rele16 52
+#define Rele17 23
+#define Rele18 25
+#define Rele19 27
+#define Rele20 29
+#define Rele21 31
+#define Rele22 33
+#define Rele23 35
+#define Rele24 37
+#define Rele25 39
+#define Rele26 41
+#define Rele27 43
+#define Rele28 45
+#define Rele29 47
+#define Rele30 49
+#define Rele31 51
+#define Rele32 53
+#define Rele33 A0
+#define Rele34 A1
+#define Rele35 A2
+#define Rele36 A3
+
+// Variavel Leitura
+int Leitura01 = 1; int Leitura02 = 1; int Leitura03 = 1; int Leitura04 = 1; int Leitura05 = 1; int Leitura06 = 1; int Leitura07 = 1; int Leitura08 = 1; int Leitura09 = 1; int Leitura10 = 1;
+int Leitura11 = 1; int Leitura12 = 1; int Leitura13 = 1; int Leitura14 = 1; int Leitura15 = 1; int Leitura16 = 1; int Leitura17 = 1; int Leitura18 = 1; int Leitura19 = 1; int Leitura20 = 1;
+int Leitura21 = 1; int Leitura22 = 1; int Leitura23 = 1; int Leitura24 = 1; int Leitura25 = 1; int Leitura26 = 1; int Leitura27 = 1; int Leitura28 = 1; int Leitura29 = 1; int Leitura30 = 1;
+int Leitura31 = 1; int Leitura32 = 1; int Leitura33 = 1; int Leitura34 = 1; int Leitura35 = 1; int Leitura36 = 1; int Leitura37 = 1; int Leitura38 = 1; int Leitura39 = 1; int Leitura40 = 1;
+int Leitura41 = 1;
+
+// Variavel dos estados
+int EstadoRele01 = 1; int EstadoRele02 = 1; int EstadoRele03 = 1; int EstadoRele04 = 1; int EstadoRele05 = 1; int EstadoRele06 = 1; int EstadoRele07 = 1; int EstadoRele08 = 1; int EstadoRele09 = 1; int EstadoRele10 = 1;
+int EstadoRele11 = 1; int EstadoRele12 = 1; int EstadoRele13 = 1; int EstadoRele14 = 1; int EstadoRele15 = 1; int EstadoRele16 = 1; int EstadoRele17 = 1; int EstadoRele18 = 1; int EstadoRele19 = 1; int EstadoRele20 = 1;
+int EstadoRele21 = 1; int EstadoRele22 = 1; int EstadoRele23 = 1; int EstadoRele24 = 1; int EstadoRele25 = 1; int EstadoRele26 = 1; int EstadoRele27 = 1; int EstadoRele28 = 1; int EstadoRele29 = 1; int EstadoRele30 = 1;
+int EstadoRele31 = 1; int EstadoRele32 = 1; int EstadoRele33 = 1; int EstadoRele34 = 1; int EstadoRele35 = 1; int EstadoRele36 = 1; int EstadoRele37 = 1; int EstadoRele38 = 1; int EstadoRele39 = 1; int EstadoRele40 = 1;
+int EstadoRele41 = 1;
+
+// Data setup Bibilioteca botoes
+
+PushButton Entrada01(PinEntrada01);  PushButton Entrada02(PinEntrada02);  PushButton Entrada03(PinEntrada03);  PushButton Entrada04(PinEntrada04);  PushButton Entrada05(PinEntrada05);  PushButton Entrada06(PinEntrada06);
+PushButton Entrada07(PinEntrada07);  PushButton Entrada08(PinEntrada08);  PushButton Entrada09(PinEntrada09);  PushButton Entrada10(PinEntrada10);  PushButton Entrada11(PinEntrada11);  PushButton Entrada12(PinEntrada12);
+PushButton Entrada13(PinEntrada13);  PushButton Entrada14(PinEntrada14);  PushButton Entrada15(PinEntrada15);  PushButton Entrada16(PinEntrada16);  PushButton Entrada17(PinEntrada17);  PushButton Entrada18(PinEntrada18);
+PushButton Entrada19(PinEntrada19);  PushButton Entrada20(PinEntrada20);  PushButton Entrada21(PinEntrada21);  PushButton Entrada22(PinEntrada22);  PushButton Entrada23(PinEntrada23);  PushButton Entrada24(PinEntrada24);
+PushButton Entrada25(PinEntrada25);  PushButton Entrada26(PinEntrada26);  PushButton Entrada27(PinEntrada27);  PushButton Entrada28(PinEntrada28);  PushButton Entrada29(PinEntrada29);  PushButton Entrada30(PinEntrada30);
+PushButton Entrada31(PinEntrada31);  PushButton Entrada32(PinEntrada32);  PushButton Entrada33(PinEntrada33);  PushButton Entrada34(PinEntrada34);  PushButton Entrada35(PinEntrada35);  PushButton Entrada36(PinEntrada36);
+PushButton LimpaEEprom(PinLimpaEEprom);
+
+
+
+// DEFINIÇÃO DO ENDEREÇO DO SLAVE
+#define endereco 8
+
+// INSTANCIANDO OBJETOS
+A2a arduinoSlave;
+
+
+//BlynkCode
+
+char auth[] = "U26_ahfQBSZzSIjd2yZRLlTRTKxNMNNL";    //Token
+
+#define W5100_CS  10
+#define SDCARD_CS 4
+
+
+
+
+void setup() {
+  DefinePinos();
+  Serial.begin(9600);
+  Serial3.begin(9600);
+  EstadoRele35 = 1;
+  EstadoRele34 = 1;
+
+  digitalWrite(SemRede, HIGH);
+
+
+  rtc.begin();
+  lcd.begin();
+
+  lcd.backlight();
+  lcd.clear();
+  lcd.setCursor(2, 0);
+  lcd.print("Inicializando...");
+  Serial.println("Inicializando..");
+
+
+
+  pinMode(SDCARD_CS, OUTPUT);
+  digitalWrite(SDCARD_CS, HIGH); // Deselect the SD card
+
+
+  pinMode(PinBootBlynk, INPUT_PULLUP);
+  BootBlynk = digitalRead(PinBootBlynk);
+
+  if (BootBlynk == 1) {
+    digitalWrite(SemRede, LOW);
+    lcd.setCursor(4, 2);
+    lcd.print("Modo Online.");
+    lcd.setCursor(0, 3);
+    lcd.print("Tentando Conectar...");
+    Serial.println("Modo Online.");
+    Serial.println("Tentando Conectar...");
+  } else {
+    if (BootBlynk == 0) {
+      lcd.setCursor(3, 2);
+      lcd.print("Modo Offline.");
+      Serial.println("Modo Offline");
+      delay(5000);
+      lcd.setCursor(0, 2);
+      lcd.print("                    ");
+    }
+  }
+
+  Serial.println(BootBlynk);
+  if (BootBlynk == 1) {
+    Blynk.begin(BLYNK_AUTH_TOKEN);
+    blynkConexao();
+  }
+
+
+
+  arduinoSlave.begin();
+
+  SendData();
+  DesligaPortas();
+  ModoTeste();    // LCD
+  TesteReles();
+  FimModoTeste(); // LCD
+  DesligaPortas();
+  ResgataDadosDaEprom();
+  InicializacaoConcluida();
+
+
+
+}
+
+// Fim do Setup
+
+BLYNK_CONNECTED() {
+  Blynk.syncVirtual(V1); Blynk.syncVirtual(V2); Blynk.syncVirtual(V3); Blynk.syncVirtual(V4); Blynk.syncVirtual(V5); Blynk.syncVirtual(V6); Blynk.syncVirtual(V7);  Blynk.syncVirtual(V8);  Blynk.syncVirtual(V9);  Blynk.syncVirtual(V10);
+  Blynk.syncVirtual(V11); Blynk.syncVirtual(V12); Blynk.syncVirtual(V13); Blynk.syncVirtual(V14); Blynk.syncVirtual(V15); Blynk.syncVirtual(V16); Blynk.syncVirtual(V17); Blynk.syncVirtual(V18); Blynk.syncVirtual(V19); Blynk.syncVirtual(V20);
+  Blynk.syncVirtual(V21); Blynk.syncVirtual(V22); Blynk.syncVirtual(V23); Blynk.syncVirtual(V24); Blynk.syncVirtual(V25); Blynk.syncVirtual(V26); Blynk.syncVirtual(V27); Blynk.syncVirtual(V28); Blynk.syncVirtual(V29); Blynk.syncVirtual(V30);
+  Blynk.syncVirtual(V31); Blynk.syncVirtual(V32); Blynk.syncVirtual(V33); Blynk.syncVirtual(V34); Blynk.syncVirtual(V35); Blynk.syncVirtual(V36); Blynk.syncVirtual(V37); Blynk.syncVirtual(V38); Blynk.syncVirtual(V40); Blynk.syncVirtual(V41);
+}
+
+// Comandos do Blynk
+
+BLYNK_WRITE(V1) {
+  EstadoRele01 = param.asInt();
+}
+
+BLYNK_WRITE(V2) {
+  EstadoRele02 = param.asInt();
+}
+
+BLYNK_WRITE(V3) {
+  EstadoRele03 = param.asInt();
+}
+
+BLYNK_WRITE(V4) {
+  EstadoRele04 = param.asInt();
+}
+
+BLYNK_WRITE(V5) {
+  EstadoRele05 = param.asInt();
+}
+
+
+BLYNK_WRITE(V6) {
+  EstadoRele06 = param.asInt();
+}
+
+BLYNK_WRITE(V7) {
+  EstadoRele07 = param.asInt();
+}
+
+
+BLYNK_WRITE(V8) {
+  EstadoRele08 = param.asInt();
+}
+
+BLYNK_WRITE(V9) {
+  EstadoRele09 = param.asInt();
+}
+
+BLYNK_WRITE(V10) {
+  EstadoRele10 = param.asInt();
+}
+
+
+BLYNK_WRITE(V11) {
+  EstadoRele11 = param.asInt();
+}
+
+BLYNK_WRITE(V12) {
+  EstadoRele12 = param.asInt();
+}
+
+BLYNK_WRITE(V13) {
+  EstadoRele13 = param.asInt();
+}
+
+BLYNK_WRITE(V14) {
+  EstadoRele14 = param.asInt();
+}
+
+BLYNK_WRITE(V15) {
+  EstadoRele15 = param.asInt();
+}
+
+
+BLYNK_WRITE(V16) {
+  EstadoRele16 = param.asInt();
+}
+
+BLYNK_WRITE(V17) {
+  EstadoRele17 = param.asInt();
+}
+
+
+BLYNK_WRITE(V18) {
+  EstadoRele18 = param.asInt();
+}
+
+BLYNK_WRITE(V19) {
+  EstadoRele19 = param.asInt();
+}
+
+BLYNK_WRITE(V20) {
+  EstadoRele20 = param.asInt();
+}
+
+
+BLYNK_WRITE(V21) {
+  EstadoRele21 = param.asInt();
+}
+
+BLYNK_WRITE(V22) {
+  EstadoRele22 = param.asInt();
+}
+
+BLYNK_WRITE(V23) {
+  EstadoRele23 = param.asInt();
+}
+
+BLYNK_WRITE(V24) {
+  EstadoRele24 = param.asInt();
+}
+
+BLYNK_WRITE(V25) {
+  EstadoRele25 = param.asInt();
+}
+
+
+BLYNK_WRITE(V26) {
+  EstadoRele26 = param.asInt();
+}
+
+BLYNK_WRITE(V27) {
+  EstadoRele27 = param.asInt();
+}
+
+
+BLYNK_WRITE(V28) {
+  EstadoRele28 = param.asInt();
+}
+
+BLYNK_WRITE(V29) {
+  EstadoRele29 = param.asInt();
+}
+
+BLYNK_WRITE(V30) {
+  EstadoRele30 = param.asInt();
+}
+
+
+BLYNK_WRITE(V31) {
+  EstadoRele31 = param.asInt();
+}
+
+BLYNK_WRITE(V32) {
+  EstadoRele32 = param.asInt();
+}
+
+BLYNK_WRITE(V33) {
+  EstadoRele33 = param.asInt();
+}
+
+BLYNK_WRITE(V34) {
+  EstadoRele34 = param.asInt();
+}
+
+BLYNK_WRITE(V35) {
+  EstadoRele35 = param.asInt();
+}
+
+
+BLYNK_WRITE(V36) {
+  EstadoRele36 = param.asInt();
+}
+
+
+
+
+BLYNK_WRITE(V37) { //Abrir Cortina
+
+  if (param.asInt() == 0) {
+    Serial3.print("A");
+    delay(10);
+    Blynk.virtualWrite(V37, 1);
+  }
+}
+
+BLYNK_WRITE(V38) { //Fechar Cortina
+  if (param.asInt() == 0) {
+    Serial3.print("F");
+    delay(10);
+    Blynk.virtualWrite(V38, 1);
+  }
+}
+
+
+BLYNK_WRITE(V40) {
+  EstadoRele08 = param.asInt();
+  EstadoRele10 = param.asInt();
+}
+
+BLYNK_WRITE(V41) {
+  EstadoRele12 = param.asInt();
+  EstadoRele13 = param.asInt();
+  EstadoRele41 = param.asInt();
+
+  
+}
+
+BLYNK_WRITE(V50) {
+  EstadoRele02 = !param.asInt();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Over Blynk----------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+void loop() {
+
+  if (BootBlynk == 1) {
+    Blynk.run();
+
+
+    int  result = Blynk.connected();
+    Serial.println(result);
+    if ( result == 0 ) {
+
+      ErroDeRede();
+    } else {
+      digitalWrite(SemRede, HIGH);
+      Online();
+    }
+  }
+  if (BootBlynk == 0) {
+    Offline();
+  }
+  FristLine();
+  ModuloRTC();
+  TempExterna();
+  SendData();
+  BibiliotecaBotoes();
+  ModoLeituraInterruptor();
+  SalvaDadosDaEprom();
+  
+  Check_Grup();
+
+
+
+  Serial.print("Estado botao 35    ");
+  Serial.println(EstadoRele35);
+
+
+
+
+}
+
+
+void SendData(){
+arduinoSlave.digitalWireWrite(endereco,Rele01,EstadoRele01);   arduinoSlave.digitalWireWrite(endereco,Rele02,EstadoRele02);   arduinoSlave.digitalWireWrite(endereco,Rele03,EstadoRele03);
+arduinoSlave.digitalWireWrite(endereco,Rele04,EstadoRele04);   arduinoSlave.digitalWireWrite(endereco,Rele05,EstadoRele05);   arduinoSlave.digitalWireWrite(endereco,Rele06,EstadoRele06);
+arduinoSlave.digitalWireWrite(endereco,Rele07,EstadoRele07);   arduinoSlave.digitalWireWrite(endereco,Rele08,EstadoRele08);   arduinoSlave.digitalWireWrite(endereco,Rele09,EstadoRele09);
+arduinoSlave.digitalWireWrite(endereco,Rele10,EstadoRele10);   arduinoSlave.digitalWireWrite(endereco,Rele11,EstadoRele11);   arduinoSlave.digitalWireWrite(endereco,Rele12,EstadoRele12);
+arduinoSlave.digitalWireWrite(endereco,Rele13,EstadoRele13);   arduinoSlave.digitalWireWrite(endereco,Rele14,EstadoRele14);   arduinoSlave.digitalWireWrite(endereco,Rele15,EstadoRele15);
+arduinoSlave.digitalWireWrite(endereco,Rele16,EstadoRele16);   arduinoSlave.digitalWireWrite(endereco,Rele17,EstadoRele17);   arduinoSlave.digitalWireWrite(endereco,Rele18,EstadoRele18);
+arduinoSlave.digitalWireWrite(endereco,Rele19,EstadoRele19);   arduinoSlave.digitalWireWrite(endereco,Rele20,EstadoRele20);   arduinoSlave.digitalWireWrite(endereco,Rele21,EstadoRele21);
+arduinoSlave.digitalWireWrite(endereco,Rele22,EstadoRele22);   arduinoSlave.digitalWireWrite(endereco,Rele23,EstadoRele23);   arduinoSlave.digitalWireWrite(endereco,Rele24,EstadoRele24);
+arduinoSlave.digitalWireWrite(endereco,Rele25,EstadoRele25);   arduinoSlave.digitalWireWrite(endereco,Rele26,EstadoRele26);   arduinoSlave.digitalWireWrite(endereco,Rele27,EstadoRele27);
+arduinoSlave.digitalWireWrite(endereco,Rele28,EstadoRele28);   arduinoSlave.digitalWireWrite(endereco,Rele29,EstadoRele29);   arduinoSlave.digitalWireWrite(endereco,Rele30,EstadoRele30);
+arduinoSlave.digitalWireWrite(endereco,Rele31,EstadoRele31);   arduinoSlave.digitalWireWrite(endereco,Rele32,EstadoRele32);   arduinoSlave.digitalWireWrite(endereco,Rele33,EstadoRele33);
+arduinoSlave.digitalWireWrite(endereco,Rele34,EstadoRele34);   arduinoSlave.digitalWireWrite(endereco,Rele35,EstadoRele35);   arduinoSlave.digitalWireWrite(endereco,Rele36,EstadoRele36);  
+}
+
+void SalvaDadosDaEprom() {  
+EEPROM.write(1,EstadoRele01); EEPROM.write(2,EstadoRele02);  EEPROM.write(3,EstadoRele03);  EEPROM.write(4,EstadoRele04);  EEPROM.write(5,EstadoRele05);  EEPROM.write(6,EstadoRele06);  EEPROM.write(7,EstadoRele07);  
+EEPROM.write(8,EstadoRele08); 
+EEPROM.write(9,EstadoRele09); EEPROM.write(10,EstadoRele10); EEPROM.write(11,EstadoRele11); EEPROM.write(12,EstadoRele12); EEPROM.write(13,EstadoRele13); EEPROM.write(14,EstadoRele14); EEPROM.write(15,EstadoRele15); 
+EEPROM.write(16,EstadoRele16); 
+EEPROM.write(17,EstadoRele17); EEPROM.write(18,EstadoRele18); EEPROM.write(19,EstadoRele19); EEPROM.write(20,EstadoRele20); EEPROM.write(21,EstadoRele21); EEPROM.write(22,EstadoRele22); EEPROM.write(23,EstadoRele23);
+EEPROM.write(24,EstadoRele24);
+EEPROM.write(25,EstadoRele25); EEPROM.write(26,EstadoRele26); EEPROM.write(27,EstadoRele27); EEPROM.write(28,EstadoRele28); EEPROM.write(29,EstadoRele29); EEPROM.write(30,EstadoRele30); EEPROM.write(31,EstadoRele31); 
+EEPROM.write(32,EstadoRele32);
+EEPROM.write(33,EstadoRele33); EEPROM.write(34,EstadoRele34); EEPROM.write(35,EstadoRele35); EEPROM.write(36,EstadoRele36);
+}
+
+void   ResgataDadosDaEprom() {
+EstadoRele01 = EEPROM.read(1);
+EstadoRele02 = EEPROM.read(2);
+EstadoRele03 = EEPROM.read(3);
+EstadoRele04 = EEPROM.read(4);
+EstadoRele05 = EEPROM.read(5);
+EstadoRele06 = EEPROM.read(6);
+EstadoRele07 = EEPROM.read(7);
+EstadoRele08 = EEPROM.read(8);
+EstadoRele09 = EEPROM.read(9);
+EstadoRele10 = EEPROM.read(10);
+EstadoRele11 = EEPROM.read(11);
+EstadoRele12 = EEPROM.read(12);
+EstadoRele13 = EEPROM.read(13);
+EstadoRele14 = EEPROM.read(14);
+EstadoRele15 = EEPROM.read(15);
+EstadoRele16 = EEPROM.read(16);
+EstadoRele17 = EEPROM.read(17);
+EstadoRele18 = EEPROM.read(18);
+EstadoRele19 = EEPROM.read(19);
+EstadoRele20 = EEPROM.read(20);
+EstadoRele21 = EEPROM.read(21);
+EstadoRele22 = EEPROM.read(22);
+EstadoRele23 = EEPROM.read(23);
+EstadoRele24 = EEPROM.read(24);
+EstadoRele25 = EEPROM.read(25);
+EstadoRele26 = EEPROM.read(26);
+EstadoRele27 = EEPROM.read(27);
+EstadoRele28 = EEPROM.read(28);
+EstadoRele29 = EEPROM.read(29);
+EstadoRele30 = EEPROM.read(30);
+EstadoRele31 = EEPROM.read(31);
+EstadoRele32 = EEPROM.read(32);
+EstadoRele33 = EEPROM.read(33);
+EstadoRele34 = EEPROM.read(34);
+EstadoRele35 = EEPROM.read(35);
+EstadoRele36 = EEPROM.read(36);
+
+Blynk.virtualWrite(V1,EstadoRele01);    Blynk.virtualWrite(V2,EstadoRele02);      Blynk.virtualWrite(V3,EstadoRele03);    Blynk.virtualWrite(V4,EstadoRele04);
+
+Blynk.virtualWrite(V5,EstadoRele05);    Blynk.virtualWrite(V6,EstadoRele06);      Blynk.virtualWrite(V7,EstadoRele07);    Blynk.virtualWrite(V8,EstadoRele08);
+
+Blynk.virtualWrite(V9,EstadoRele09);    Blynk.virtualWrite(V10,EstadoRele10);     Blynk.virtualWrite(V11,EstadoRele11);   Blynk.virtualWrite(V12,EstadoRele12);
+
+Blynk.virtualWrite(V13,EstadoRele13);   Blynk.virtualWrite(V14,EstadoRele14);     Blynk.virtualWrite(V15,EstadoRele15);   Blynk.virtualWrite(V16,EstadoRele16);
+
+Blynk.virtualWrite(V17,EstadoRele17);   Blynk.virtualWrite(V18,EstadoRele18);     Blynk.virtualWrite(V19,EstadoRele19);   Blynk.virtualWrite(V20,EstadoRele20);
+
+Blynk.virtualWrite(V22,EstadoRele22);   Blynk.virtualWrite(V23,EstadoRele23);     Blynk.virtualWrite(V24,EstadoRele24);   Blynk.virtualWrite(V25,EstadoRele25);
+
+Blynk.virtualWrite(V26,EstadoRele26);   Blynk.virtualWrite(V27,EstadoRele27);     Blynk.virtualWrite(V28,EstadoRele28);   Blynk.virtualWrite(V29,EstadoRele29);
+
+Blynk.virtualWrite(V30,EstadoRele30);   Blynk.virtualWrite(V31,EstadoRele31);     Blynk.virtualWrite(V32,EstadoRele32);   Blynk.virtualWrite(V33,EstadoRele33);
+
+Blynk.virtualWrite(V34,EstadoRele34);   Blynk.virtualWrite(V35,EstadoRele35);     Blynk.virtualWrite(V36,EstadoRele36);   Blynk.virtualWrite(V40,EstadoRele40);
+
+Blynk.virtualWrite(V41,EstadoRele41);
+
+
+
+}
+
+void BibiliotecaBotoes() {
+ Entrada01.button_loop(); Entrada02.button_loop(); Entrada03.button_loop(); Entrada04.button_loop(); Entrada05.button_loop(); Entrada06.button_loop(); Entrada07.button_loop(); Entrada08.button_loop();
+ Entrada09.button_loop(); Entrada10.button_loop(); Entrada11.button_loop(); Entrada12.button_loop(); Entrada13.button_loop(); Entrada14.button_loop(); Entrada15.button_loop(); Entrada16.button_loop();
+ Entrada17.button_loop(); Entrada18.button_loop(); Entrada19.button_loop(); Entrada20.button_loop(); Entrada21.button_loop(); Entrada22.button_loop(); Entrada23.button_loop(); Entrada24.button_loop();
+ Entrada25.button_loop(); Entrada26.button_loop(); Entrada27.button_loop(); Entrada28.button_loop(); Entrada29.button_loop(); Entrada30.button_loop(); Entrada31.button_loop(); Entrada32.button_loop();
+ Entrada33.button_loop(); Entrada34.button_loop();Entrada35.button_loop(); Entrada36.button_loop(); 
+ 
+ LimpaEEprom.button_loop();
+}
+
+
+
+void ModoLeituraInterruptor(){
+
+    if (Entrada01.pressed()) {
+        EstadoRele01 = !EstadoRele01; 
+        Blynk.virtualWrite(V1,EstadoRele01);
+      }
+    
+    if (Entrada02.pressed()) {
+        EstadoRele02 = !EstadoRele02; 
+        Blynk.virtualWrite(V2,EstadoRele02);
+      }
+    
+    if (Entrada03.pressed()) {
+        EstadoRele03 = !EstadoRele03; 
+        Blynk.virtualWrite(V3,EstadoRele03);
+      }  
+    
+    if (Entrada04.pressed()) {
+        EstadoRele04 = !EstadoRele04; 
+        Blynk.virtualWrite(V4,EstadoRele04);
+      }
+    
+    if (Entrada05.pressed()) {
+        EstadoRele05 = !EstadoRele05;
+        Blynk.virtualWrite(V5,EstadoRele05); 
+      }
+    
+    
+    if (Entrada06.pressed()) {
+        EstadoRele06 = !EstadoRele06; 
+        Blynk.virtualWrite(V6,EstadoRele06);
+      }
+    
+    if (Entrada07.pressed()) {
+        EstadoRele07 = !EstadoRele07;
+        Blynk.virtualWrite(V7,EstadoRele07); 
+      }
+    
+    if (Entrada08.pressed()) {
+        EstadoRele08 = !EstadoRele08; 
+        Blynk.virtualWrite(V8,EstadoRele08);
+        Blynk.virtualWrite(V40,EstadoRele08);
+        EstadoRele34 = EstadoRele08;
+      }
+    
+    if (Entrada09.pressed()) {
+        EstadoRele09 = !EstadoRele09; 
+        Blynk.virtualWrite(V9,EstadoRele09);
+      }
+    
+    if (Entrada10.pressed()) {
+        EstadoRele10 = !EstadoRele10;
+        Blynk.virtualWrite(V10,EstadoRele10);
+        Blynk.virtualWrite(V40,EstadoRele10); 
+        EstadoRele34 = EstadoRele10;
+      }           
+       
+                        if (Entrada11.pressed()) {
+                            EstadoRele11 = !EstadoRele11;
+                            Blynk.virtualWrite(V11,EstadoRele11);
+                            EstadoRele34 = EstadoRele11;                            
+                          }
+                        
+                        if (Entrada12.pressed()) {
+                            EstadoRele12 = !EstadoRele12;
+                            Blynk.virtualWrite(V12,EstadoRele12);
+                            Blynk.virtualWrite(V41,EstadoRele12); 
+                          }
+                        
+                        if (Entrada13.pressed()) {
+                            EstadoRele13 = !EstadoRele13; 
+                            Blynk.virtualWrite(V13,EstadoRele13);
+                            Blynk.virtualWrite(V41,EstadoRele13);
+                          }  
+                        
+                        if (Entrada14.pressed()) {
+                            EstadoRele14 = !EstadoRele14;
+                            Blynk.virtualWrite(V14,EstadoRele14); 
+                          }
+                        
+                        if (Entrada15.pressed()) {
+                            EstadoRele15 = !EstadoRele15;
+                            Blynk.virtualWrite(V15,EstadoRele15); 
+                          }
+                        
+                        
+                        if (Entrada16.pressed()) {
+                            EstadoRele16 = !EstadoRele16; 
+                            Blynk.virtualWrite(V16,EstadoRele16);
+                          }
+                        
+                        if (Entrada17.pressed()) {
+                            EstadoRele17 = !EstadoRele17;
+                            Blynk.virtualWrite(V17,EstadoRele17); 
+                          }
+                        
+                        if (Entrada18.pressed()) {
+                            EstadoRele18 = !EstadoRele18; 
+                            Blynk.virtualWrite(V18,EstadoRele18);
+                          }
+                        
+                        if (Entrada19.pressed()) {
+                            EstadoRele19 = !EstadoRele19;
+                            Blynk.virtualWrite(V19,EstadoRele19); 
+                          }
+              
+    if (Entrada20.pressed()) {
+        EstadoRele20 = !EstadoRele20; 
+        Blynk.virtualWrite(V20,EstadoRele20);
+      }
+  
+    if (Entrada21.pressed()) {
+        EstadoRele21 = !EstadoRele21; 
+        Blynk.virtualWrite(V21,EstadoRele21);
+      }
+    
+    if (Entrada22.pressed()) {
+        EstadoRele22 = !EstadoRele22; 
+        Blynk.virtualWrite(V22,EstadoRele22);
+      }
+    
+    if (Entrada23.pressed()) {
+        EstadoRele23 = !EstadoRele23; 
+        Blynk.virtualWrite(V23,EstadoRele23);
+      }  
+    
+    if (Entrada24.pressed()) {
+        EstadoRele24 = !EstadoRele24; 
+        Blynk.virtualWrite(V24,EstadoRele24);
+      }
+    
+    if (Entrada25.pressed()) {
+        EstadoRele25 = !EstadoRele25; 
+        Blynk.virtualWrite(V25,EstadoRele25);
+      }
+    
+    if (Entrada26.pressed()) {
+        EstadoRele26 = !EstadoRele26; 
+        Blynk.virtualWrite(V26,EstadoRele26);
+      }
+    
+    if (Entrada27.pressed()) {
+        EstadoRele27 = !EstadoRele27; 
+        Blynk.virtualWrite(V27,EstadoRele27);
+      }
+    
+    if (Entrada28.pressed()) {
+        EstadoRele28 = !EstadoRele28; 
+        Blynk.virtualWrite(V28,EstadoRele28);
+      }
+    
+    if (Entrada29.pressed()) {
+        EstadoRele29 = !EstadoRele29; 
+        Blynk.virtualWrite(V29,EstadoRele29);
+      }
+
+                    if (Entrada30.pressed()) {
+                        EstadoRele30 = !EstadoRele30; 
+                        Blynk.virtualWrite(V30,EstadoRele30);
+                      }
+  
+                    if (Entrada31.pressed()) {
+                        EstadoRele31 = !EstadoRele31;
+                        Serial.println("press buton 31");
+                        Blynk.virtualWrite(V31,EstadoRele31); 
+                      }
+                    
+                    if (Entrada32.pressed()) {
+                        EstadoRele32 = !EstadoRele32;
+                        Serial.println("press buton 32"); 
+                        Blynk.virtualWrite(V32,EstadoRele32);
+                      }
+                    
+                    if (Entrada33.pressed()) {
+                        EstadoRele33 = !EstadoRele33; 
+                        Serial.println("press buton 33");
+                        Blynk.virtualWrite(V33,EstadoRele33);
+                      }  
+
+
+
+                                                                                                     if (Entrada34.pressed()) {
+                                                                                                            Serial.println("press buton 34");
+                                                                                                            EstadoRele34 = !EstadoRele34;
+                                                                                                            Blynk.virtualWrite(V40,EstadoRele34);
+
+                                                                                                            if ( EstadoRele34 == 0){
+                                                                                                            Blynk.virtualWrite(V8,EstadoRele34);
+                                                                                                            Blynk.virtualWrite(V10,EstadoRele34);
+                                                                                                            EstadoRele08 = EstadoRele34;
+                                                                                                            EstadoRele10 = EstadoRele34;
+                                                                                                            }
+
+                                                                                                            if (EstadoRele34 == 1 ){
+                                                                                                            Blynk.virtualWrite(V8,EstadoRele34);
+                                                                                                            Blynk.virtualWrite(V10,EstadoRele34);
+                                                                                                            Blynk.virtualWrite(V11,EstadoRele34);
+                                                                                                            EstadoRele08 = EstadoRele34;
+                                                                                                            EstadoRele10 = EstadoRele34;
+                                                                                                            EstadoRele11 = EstadoRele34;                                                                                                              
+                                                                                                            }
+                                                                                                                                                                                                                                                                                                                                  
+                                                                                                        } 
+
+                    
+                   
+                      
+                    
+                                                                                                      if (Entrada35.pressed()) {
+                                                                                                            EstadoRele35 = !EstadoRele35;
+
+                                                                                                            if(EstadoRele35 == 0){
+                                                                                                              Serial.println("Ligado");
+                                                                                                            
+                                                                                                            Blynk.virtualWrite(V2,EstadoRele35);
+                                                                                                            Blynk.virtualWrite(V3,EstadoRele35);                                                                                                                                                                                  
+                                                                                                            Blynk.virtualWrite(V14,EstadoRele35);
+                                                                                                            EstadoRele02 = EstadoRele35;
+                                                                                                            EstadoRele03 = EstadoRele35;
+                                                                                                            EstadoRele14 = EstadoRele35;                                                                                                                                                                                                                    
+                                                                                                            }
+                                                                                                            
+
+                                                                                                            if( EstadoRele35 == 1 ){
+                                                                                                               Serial.println("Desligado");
+                                                                                                            Blynk.virtualWrite(V1,EstadoRele35);
+                                                                                                            Blynk.virtualWrite(V3,EstadoRele35);
+                                                                                                            Blynk.virtualWrite(V4,EstadoRele35);
+                                                                                                            Blynk.virtualWrite(V6,EstadoRele35);
+                                                                                                            Blynk.virtualWrite(V7,EstadoRele35);
+                                                                                                            Blynk.virtualWrite(V40,EstadoRele35);
+                                                                                                            Blynk.virtualWrite(V11,EstadoRele35);
+                                                                                                            Blynk.virtualWrite(V41,EstadoRele35);
+                                                                                                            Blynk.virtualWrite(V14,EstadoRele35);
+                                                                                                            Blynk.virtualWrite(V15,EstadoRele35);                                                                                                              
+
+                                                                                                            EstadoRele01 = EstadoRele35;  
+                                                                                                            EstadoRele03 = EstadoRele35;
+                                                                                                            EstadoRele04 = EstadoRele35;
+                                                                                                            EstadoRele06 = EstadoRele35;
+                                                                                                            EstadoRele07 = EstadoRele35;
+                                                                                                            EstadoRele08 = EstadoRele35;
+                                                                                                            EstadoRele10 = EstadoRele35;
+                                                                                                            EstadoRele11 = EstadoRele35;
+                                                                                                            EstadoRele12 = EstadoRele35;
+                                                                                                            EstadoRele13 = EstadoRele35;
+                                                                                                            EstadoRele14 = EstadoRele35;
+                                                                                                            EstadoRele15 = EstadoRele35;
+                                                                                                            
+                                                                                                            }
+                                                                                                            
+
+
+                           
+                                            
+                                                         
+                                 }
+
+
+
+
+                                      
+                                  
+                    if (Entrada36.pressed()) {
+                      Serial.println("press buton 36");
+                        EstadoRele36 = !EstadoRele36; 
+                        Blynk.virtualWrite(V36,EstadoRele36);
+                      }
+                                        
+
+
+
+// Limpeza do EEPROM
+ if (LimpaEEprom.pressed()) { 
+LimpezaDeEproom();
+EEPROM.write(1,1);  EEPROM.write(2,1);  EEPROM.write(3,1);  EEPROM.write(4,1);  EEPROM.write(5,1);  EEPROM.write(6,1);  EEPROM.write(7,1);  EEPROM.write(8,1); 
+EEPROM.write(9,1);  EEPROM.write(10,1); EEPROM.write(11,1); EEPROM.write(12,1); EEPROM.write(13,1); EEPROM.write(14,1); EEPROM.write(15,1); EEPROM.write(16,1); 
+EEPROM.write(17,1); EEPROM.write(18,1); EEPROM.write(19,1); EEPROM.write(20,1); EEPROM.write(21,1); EEPROM.write(22,1); EEPROM.write(23,1); EEPROM.write(24,1);
+EEPROM.write(25,1); EEPROM.write(26,1); EEPROM.write(27,1); EEPROM.write(28,1); EEPROM.write(29,1); EEPROM.write(30,1); EEPROM.write(31,1); EEPROM.write(32,1);
+EEPROM.write(33,1); EEPROM.write(34,1); EEPROM.write(35,1); EEPROM.write(36,1); EEPROM.write(37,1); EEPROM.write(38,1); EEPROM.write(39,1); EEPROM.write(40,1);
+   delay (100);
+     DesligaPortas();
+       delay (1500);
+         asm volatile ("  jmp 0");
+         
+            }    
+// Fim Limpeza do EEPROM
+   
+                                       
+
+
+}
+
+
+
+void Check_Grup(){
+
+
+if ( EstadoRele01 == 0 or EstadoRele02 == 0 or EstadoRele03 == 0 or EstadoRele04 == 0 or EstadoRele06 == 0 or EstadoRele07 == 0 or EstadoRele08 == 0 or EstadoRele10 == 0 or EstadoRele11 == 0 or EstadoRele12 == 0 or EstadoRele13 == 0 or EstadoRele14 == 0 or EstadoRele15 == 0 or EstadoRele16 == 0 or EstadoRele40 == 0 or EstadoRele41 == 0){
+
+   EstadoRele35 = 0;
+     
+}
+
+
+if ( EstadoRele12 != EstadoRele41 or EstadoRele13 != EstadoRele41 ){
+
+   if(EstadoRele12 == 0){
+    EstadoRele41 = 0;
+       }else{
+         if(EstadoRele12 == 1){
+             EstadoRele41 = 1;
+              }
+                  }
+
+
+          if(EstadoRele13 == 0){
+             EstadoRele41 = 0;
+              }else{
+                if(EstadoRele13 == 1){
+                   EstadoRele41 = 1;
+                    }
+                      }
+
+                      Blynk.virtualWrite(V41,EstadoRele41);
+
+}
+
+
+
+  
+}
+
+void TempExterna(){
+  
+     my_dht.read11(dht_pin);
+
+   temperatura = my_dht.temperature;
+   umidade     = my_dht.humidity;
+
+   // Serial.print("Temp Externa: ");
+   // Serial.print(temperatura);
+   //Serial.print("ºC");
+   //Serial.println(" ");
+   //Serial.print("Umidade Externa:");
+   //Serial.print(umidade);
+   //Serial.println("%");
+   
+}
+
+void ModuloRTC(){
+    // Get data from the DS3231
+  t = rtc.getTime();
+  
+  
+  // Send Day-of-Week and time
+
+//  Serial.print(t.hour, DEC);
+//  Serial.print(":");
+//  Serial.print(t.min, DEC);
+//  Serial.print(":");
+//  Serial.println(t.sec, DEC);
+//  Serial.print("Temperatura Interna:");
+//  Serial.print(rtc.getTemp());
+//  Serial.println(" C");
+//  Serial.println(" ");
+}
+
+void AjusteDoRelogio(){
+
+if (t.hour >= 0 and t.hour < 10){
+ lcd.setCursor(12,0);
+  lcd.print("0"); 
+  lcd.setCursor(13,0);
+  lcd.print(t.hour, DEC);
+  lcd.print(":");
+  
+}else{
+  if (t.hour >= 10 and t.hour ){
+  lcd.setCursor(12,0);
+  lcd.print(t.hour, DEC);
+  lcd.print(":");
+ 
+  } }
+  if (t.min >= 0 and t.min < 10){
+ lcd.setCursor(15,0);
+  lcd.print("0");
+  lcd.print(t.min, DEC);
+  lcd.print(":");
+   }else{
+  if (t.min > 9  ){
+  lcd.setCursor(15,0);
+  lcd.print(t.min, DEC);
+  lcd.print(":");  
+  } }
+
+       if (t.sec >= 0 and t.sec < 10){
+         lcd.setCursor(18,0);
+          lcd.print("0");
+          lcd.print(t.sec, DEC);
+            }else{
+          if (t.sec >= 10  ){
+          lcd.setCursor(18,0);
+          lcd.print(t.sec, DEC);
+            
+          } }
+
+  
+}
+
+void blynkConexao() {
+lcd.setCursor(0,2);
+lcd.print("                    ");
+lcd.setCursor(0,3);
+lcd.print("                    ");
+lcd.setCursor(3,2);
+lcd.print("Conectado com");
+lcd.setCursor(6,3);
+lcd.print("Sucesso!");
+Serial.println("Conectado com Sucesso!");
+delay(3000);
+}
+
+void ModoTeste(){
+lcd.setCursor(0,1);
+lcd.print("                    ");  
+lcd.setCursor(0,2);
+lcd.print("                    ");
+lcd.setCursor(0,3);
+lcd.print("                    ");
+lcd.setCursor(0,2);
+lcd.print("  Modo de Teste...");
+Serial.println("  Modo de Teste...");
+delay(2000); 
+}
+
+void FimModoTeste(){
+lcd.setCursor(0,1);
+lcd.print("                    ");  
+lcd.setCursor(0,2);
+lcd.print("                    ");
+lcd.setCursor(0,3);
+lcd.print("                    ");
+lcd.setCursor(0,2);
+lcd.print(" Fim Modo de Teste.");
+Serial.println(" Fim Modo de Teste.");
+delay(3000); 
+}
+
+void InicializacaoConcluida(){
+lcd.clear();
+lcd.setCursor(0,1);
+lcd.print("    Inicializacao");
+lcd.setCursor(0,2);
+lcd.print("     Concluida!"); 
+Serial.println("Inicialização Concluida!");
+delay(3000); 
+lcd.clear();
+}
+
+void Online(){ 
+lcd.setCursor(0,3);
+lcd.print("  Status: Online    ");
+}
+void Offline(){
+lcd.setCursor(0,3);
+lcd.print("Status: Modo Offline");  
+}
+
+void OfflineERROR(){
+lcd.clear();
+lcd.setCursor(0,0);
+lcd.print("      Status:"); 
+lcd.setCursor(0,1);
+lcd.print("  Offline/Em Falha"); 
+lcd.setCursor(0,2);
+lcd.print("    Reiniciar ou"); 
+lcd.setCursor(0,3);
+lcd.print(" Alterar Parametros");
+delay(1500);
+
+
+}
+
+void LimpezaDeEproom(){
+ lcd.clear();
+ lcd.setCursor(0,1);
+ lcd.print("  Limpando EEPROM!"); 
+ Serial.println("Limpando EEPROM");
+ delay(3000);
+ lcd.clear();
+ lcd.setCursor(0,1);
+ lcd.print("    EEPROM Limpa!"); 
+ Serial.println("EEPROM Limpa!");
+ delay(3000);
+ lcd.clear();
+ lcd.setCursor(0,1);
+ lcd.print("   Reiniciando..."); 
+ Serial.println("Reiniciando...");
+ delay(3000);
+}
+
+void FristLine(){
+lcd.setCursor(0,0);
+lcd.print("UR:");
+lcd.print(umidade);
+lcd.print("%");
+lcd.print(" ");
+lcd.print(temperatura);
+lcd.print("C");
+
+AjusteDoRelogio();
+
+
+ 
+ 
+}
+
+void Alarm(){
+
+  
+}
+
+void DefinePinos() {
+
+arduinoSlave.pinWireMode(endereco,Rele01,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele02,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele03,OUTPUT); arduinoSlave.pinWireMode(endereco,Rele04,OUTPUT);
+ 
+arduinoSlave.pinWireMode(endereco,Rele05,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele06,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele07,OUTPUT); arduinoSlave.pinWireMode(endereco,Rele08,OUTPUT); 
+
+arduinoSlave.pinWireMode(endereco,Rele09,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele10,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele11,OUTPUT); arduinoSlave.pinWireMode(endereco,Rele12,OUTPUT); 
+
+arduinoSlave.pinWireMode(endereco,Rele13,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele14,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele15,OUTPUT); arduinoSlave.pinWireMode(endereco,Rele16,OUTPUT);
+ 
+arduinoSlave.pinWireMode(endereco,Rele17,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele18,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele19,OUTPUT); arduinoSlave.pinWireMode(endereco,Rele20,OUTPUT); 
+
+arduinoSlave.pinWireMode(endereco,Rele21,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele22,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele23,OUTPUT); arduinoSlave.pinWireMode(endereco,Rele24,OUTPUT); 
+
+arduinoSlave.pinWireMode(endereco,Rele25,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele26,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele27,OUTPUT); arduinoSlave.pinWireMode(endereco,Rele28,OUTPUT); 
+
+arduinoSlave.pinWireMode(endereco,Rele29,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele30,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele31,OUTPUT); arduinoSlave.pinWireMode(endereco,Rele32,OUTPUT); 
+
+arduinoSlave.pinWireMode(endereco,Rele33,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele34,OUTPUT);  arduinoSlave.pinWireMode(endereco,Rele35,OUTPUT); arduinoSlave.pinWireMode(endereco,Rele36,OUTPUT);
+
+ pinMode(SemRede, OUTPUT);
+  
+}
+
+void TesteReles(){
+  int Time = 150;
+
+arduinoSlave.digitalWireWrite(endereco,Rele01,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele02,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele03,0); delay(Time);
+
+arduinoSlave.digitalWireWrite(endereco,Rele04,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele05,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele06,0); delay(Time);
+
+arduinoSlave.digitalWireWrite(endereco,Rele07,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele08,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele09,0); delay(Time);
+
+arduinoSlave.digitalWireWrite(endereco,Rele10,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele11,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele12,0); delay(Time);
+
+arduinoSlave.digitalWireWrite(endereco,Rele13,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele14,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele15,0); delay(Time);
+
+arduinoSlave.digitalWireWrite(endereco,Rele16,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele17,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele18,0); delay(Time);
+
+arduinoSlave.digitalWireWrite(endereco,Rele19,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele20,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele21,0); delay(Time);
+
+arduinoSlave.digitalWireWrite(endereco,Rele22,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele23,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele24,0); delay(Time);
+
+arduinoSlave.digitalWireWrite(endereco,Rele25,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele26,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele27,0); delay(Time);
+
+arduinoSlave.digitalWireWrite(endereco,Rele28,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele29,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele30,0); delay(Time);
+
+arduinoSlave.digitalWireWrite(endereco,Rele31,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele32,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele33,0); delay(Time);
+
+arduinoSlave.digitalWireWrite(endereco,Rele34,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele35,0); delay(Time);   arduinoSlave.digitalWireWrite(endereco,Rele36,0); delay(Time);
+
+DesligaPortas();
+
+}
+
+
+void DesligaPortas(){
+ EstadoRele01 = 1;  EstadoRele02 = 1;  EstadoRele03 = 1;  EstadoRele04 = 1;  EstadoRele05 = 1;  EstadoRele06 = 1;  EstadoRele07 = 1;  EstadoRele08 = 1;  EstadoRele09 = 1;  EstadoRele10 = 1;
+ EstadoRele11 = 1;  EstadoRele12 = 1;  EstadoRele13 = 1;  EstadoRele14 = 1;  EstadoRele15 = 1;  EstadoRele16 = 1;  EstadoRele17 = 1;  EstadoRele18 = 1;  EstadoRele19 = 1;  EstadoRele20 = 1;
+ EstadoRele21 = 1;  EstadoRele22 = 1;  EstadoRele23 = 1;  EstadoRele24 = 1;  EstadoRele25 = 1;  EstadoRele26 = 1;  EstadoRele27 = 1;  EstadoRele28 = 1;  EstadoRele29 = 1;  EstadoRele30 = 1;
+ EstadoRele31 = 1;  EstadoRele32 = 1;  EstadoRele33 = 1;  EstadoRele34 = 1;  EstadoRele35 = 1;  EstadoRele36 = 1;   
+
+arduinoSlave.digitalWireWrite(endereco,Rele01,1); arduinoSlave.digitalWireWrite(endereco,Rele02,1); arduinoSlave.digitalWireWrite(endereco,Rele03,1); 
+arduinoSlave.digitalWireWrite(endereco,Rele04,1); arduinoSlave.digitalWireWrite(endereco,Rele05,1); arduinoSlave.digitalWireWrite(endereco,Rele06,1); 
+arduinoSlave.digitalWireWrite(endereco,Rele07,1); arduinoSlave.digitalWireWrite(endereco,Rele08,1); arduinoSlave.digitalWireWrite(endereco,Rele09,1); 
+arduinoSlave.digitalWireWrite(endereco,Rele10,1); arduinoSlave.digitalWireWrite(endereco,Rele11,1); arduinoSlave.digitalWireWrite(endereco,Rele12,1); 
+arduinoSlave.digitalWireWrite(endereco,Rele13,1); arduinoSlave.digitalWireWrite(endereco,Rele14,1); arduinoSlave.digitalWireWrite(endereco,Rele15,1); 
+arduinoSlave.digitalWireWrite(endereco,Rele16,1); arduinoSlave.digitalWireWrite(endereco,Rele17,1); arduinoSlave.digitalWireWrite(endereco,Rele18,1); 
+arduinoSlave.digitalWireWrite(endereco,Rele19,1); arduinoSlave.digitalWireWrite(endereco,Rele20,1); arduinoSlave.digitalWireWrite(endereco,Rele21,1); 
+arduinoSlave.digitalWireWrite(endereco,Rele22,1); arduinoSlave.digitalWireWrite(endereco,Rele23,1); arduinoSlave.digitalWireWrite(endereco,Rele24,1); 
+arduinoSlave.digitalWireWrite(endereco,Rele25,1); arduinoSlave.digitalWireWrite(endereco,Rele26,1); arduinoSlave.digitalWireWrite(endereco,Rele27,1); 
+arduinoSlave.digitalWireWrite(endereco,Rele28,1); arduinoSlave.digitalWireWrite(endereco,Rele29,1); arduinoSlave.digitalWireWrite(endereco,Rele30,1); 
+arduinoSlave.digitalWireWrite(endereco,Rele31,1); arduinoSlave.digitalWireWrite(endereco,Rele32,1); arduinoSlave.digitalWireWrite(endereco,Rele33,1); 
+arduinoSlave.digitalWireWrite(endereco,Rele34,1); arduinoSlave.digitalWireWrite(endereco,Rele35,1); arduinoSlave.digitalWireWrite(endereco,Rele36,1); 
+}
+
+
+void ErroDeRede(){
+  int temp =  250;
+  int temp2 = 150;
+  OfflineERROR();
+      digitalWrite(SemRede, HIGH); delay(temp);digitalWrite(SemRede, LOW);delay(temp2);digitalWrite(SemRede, HIGH); delay(temp);digitalWrite(SemRede, LOW);delay(temp2);digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp2);
+      digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp);digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp);digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp);
+      digitalWrite(SemRede, HIGH); digitalWrite(SemRede, HIGH); delay(temp);digitalWrite(SemRede, LOW);delay(temp2);digitalWrite(SemRede, HIGH); delay(temp);digitalWrite(SemRede, LOW);delay(temp2);digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp2);
+      digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp);digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp);digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp);
+      digitalWrite(SemRede, HIGH);digitalWrite(SemRede, HIGH); delay(temp);digitalWrite(SemRede, LOW);delay(temp2);digitalWrite(SemRede, HIGH); delay(temp);digitalWrite(SemRede, LOW);delay(temp2);digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp2);
+      digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp);digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp);digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp);
+      digitalWrite(SemRede, HIGH);digitalWrite(SemRede, HIGH); delay(temp);digitalWrite(SemRede, LOW);delay(temp2);digitalWrite(SemRede, HIGH); delay(temp);digitalWrite(SemRede, LOW);delay(temp2);digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp2);
+      digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp);digitalWrite(SemRede, HIGH); delay(temp2);digitalWrite(SemRede, LOW);delay(temp);digitalWrite(SemRede, HIGH); digitalWrite(SemRede, LOW); 
+      lcd.clear();    
+}
